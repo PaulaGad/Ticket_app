@@ -1,0 +1,49 @@
+.legend-wrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin-top: 4%;
+}
+.seat-wrapper {
+  display: flex;
+  /* justify-items: center; */
+  align-items: center;
+}
+.legend-seats {
+  display: flex;
+  align-items: center;
+  flex-grow: 3;
+  min-height: calc(40px + 2vw);;
+}
+
+.legend-seat {
+  border: 1px solid darkblue;
+  height: calc(20px + 2vw);
+  width: calc(20px + 2vw);
+  margin: 3px;
+}
+
+.legend-text {
+  align-items: center;
+  padding-left: 5px;
+  padding-right: 20px;
+  font-size: 12px;
+}
+
+.btnBooking {
+  width: 25%;
+  float: right;
+}
+
+@media (max-width: 1200px) {
+  .legend-seats {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+  }
+  .legend-seat {
+    height: calc(10px + 2vw);
+    width: calc(10px + 2vw);
+ }
+}
