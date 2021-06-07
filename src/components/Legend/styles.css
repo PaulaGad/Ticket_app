@@ -7,7 +7,6 @@
 }
 .seat-wrapper {
   display: flex;
-  /* justify-items: center; */
   align-items: center;
 }
 .legend-seats {
@@ -32,8 +31,11 @@
 }
 
 .btnBooking {
-  width: 25%;
+  flex-grow: 1;
   float: right;
+}
+.ant-btn-lg {
+  width: 26%;
 }
 
 @media (max-width: 1200px) {

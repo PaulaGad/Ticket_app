@@ -1,11 +1,13 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+
 import { Button } from 'antd';
+import Modal from 'antd/lib/modal/Modal';
+
 import { StoreContext } from '../../store/StoreProvider';
+
 import SeatOutlook from '../Seats/SeatOutlook/SeatOutlook';
 import './styles.css';
-import API from '../../api';
-import { SELECT_SEAT } from '../../store/actionTypes';
 
 export const freeColor = 'white';
 export const reservedColor = 'darkblue';
@@ -13,43 +15,57 @@ export const selectedColor = 'darkorange';
 
 const Legend = () => {
   const history = useHistory();
-  const { seats, dispatch } = useContext(StoreContext);
+  const { seats } = useContext(StoreContext);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const legendSeats = [
     {
       id: "s00",
+      cords: { 
+        x: 0,
+        y: 0
+      },
       color: freeColor,
       text: 'Miejsce dostępne'
     },
     {
       id: "s01",
+      cords: { 
+        x: 0,
+        y: 1
+      },
       color: reservedColor,
       text: 'Miejsce zarezerwowane'
     },
     {
       id: "s02",
+      cords: { 
+        x: 0,
+        y: 2
+      },
       color: selectedColor,
       text: 'Twój wybór'
     }
   ];
 
-  const handleBookingClick = async () => {
-    try {
-      const selectedSeats = seats.filter(seat => seat.selected)
-      console.log(selectedSeats)
-      selectedSeats.forEach(seat => {
-        const response = API.patch(`/seats/${seat.id}`, { ...seat, reserved: true });
-        return  dispatch({type: SELECT_SEAT, payload: seat.id, ...response.data })
-      })
-    } catch (error) {
-      console.warn(error);
+  const anySeatSelected = seats.find(seat => seat.selected);
+
+  const handleBookingClick = () => {
+    if (anySeatSelected) {
+      history.push('/summary');
+    } else {
+      setIsModalVisible(true);
     };
-    history.push('/summary');
   };
 
-  const legendList = legendSeats.map(seat => (
-    <div className="seat-wrapper" key={seat.id}>
-      <SeatOutlook className="legend-seat" color={seat.color}/><p className="legend-text">{seat.text}</p>
+  const handleModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const legendList = legendSeats.map(({id, cords: {x, y}, color, text}) => (
+    <div className="seat-wrapper" key={id}>
+      <SeatOutlook className="legend-seat" color={color} x={x} y={y}/>
+      <p className="legend-text">{text}</p>
     </div>
   ));
 
@@ -58,7 +74,10 @@ const Legend = () => {
       <div className="legend-seats" >
         {legendList}
       </div>
-        <Button className="btnBooking" onClick={handleBookingClick}>Zarezerwuj</Button>
+        <Button className="btnBooking" onClick={handleBookingClick}>Rezerwuj</Button>
+        <Modal title="Informacja" visible={isModalVisible} onOk={() => handleModal()} onCancel={() => handleModal()}>
+        <p>Aby dokonać rezerwacji, należy wybrać min. 1 miejsce</p>
+        </Modal>
     </div>
   );
 };

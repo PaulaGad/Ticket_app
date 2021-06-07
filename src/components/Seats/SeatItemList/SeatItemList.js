@@ -1,28 +1,23 @@
 import React, { useContext } from 'react';
 
 import { StoreContext } from '../../../store/StoreProvider';
+import { SELECT_SEAT } from '../../../store/actionTypes';
 
 import SeatOutlook from '../SeatOutlook/SeatOutlook';
 import { freeColor, reservedColor, selectedColor } from '../../Legend/Legend';
-import API from '../../../api';
-import { SELECT_SEAT } from '../../../store/actionTypes';
 
-const SeatItemList = ({ id, cords: { x, y }, reserved, selected }) => {
-  const { dispatch} = useContext(StoreContext);
-  const seat = {
-    id,
-    cords: {x, y},
-    reserved,
-    selected: !selected
-  };
+const SeatItemList = ({ id }) => {
+  const { seats, dispatch } = useContext(StoreContext);
   
-  const handleSelectSeat = async () => {
+  const seat = seats.find(seat => seat.id === id);
+  const { cords: { x, y }, reserved, selected } = seat;
+  
+  const handleSelectSeat = () => {
     try {
-      const response = await API.patch(`/seats/${id}`, seat);
-      dispatch({type: SELECT_SEAT, payload: id, ...response.data });
-    } catch (error) {
-      console.warn(error);
-    };
+      dispatch({ type: SELECT_SEAT, payload: id });
+      } catch (error){
+        console.log(error);
+      }
   };
 
   return (

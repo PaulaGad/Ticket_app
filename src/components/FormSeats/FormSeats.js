@@ -1,98 +1,86 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { StoreContext } from '../../store/StoreProvider';
 
 import { Button, Checkbox, Form, InputNumber } from 'antd';
-import API from '../../api/index';
-import { CLEAR_SELECTION_SEATS, SELECT_SEAT } from '../../store/actionTypes';
+import Modal from 'antd/lib/modal/Modal';
+
+import { StoreContext } from '../../store/StoreProvider';
+import { SELECT_SEAT } from '../../store/actionTypes';
 
 const FormSeats = () => {
   const history = useHistory();
   const { seats, dispatch } = useContext(StoreContext);
   const [numberOfSeats, setNumberOfSeats] = useState(0);
   const [seatsTogether, setSeatsTogether] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const numberOfavailableSeats = seats ? seats.filter(seat => seat.reserved === false).length : 99;
   const seatsUnreserved = seats.filter(seat => seat.reserved === false);
-  const numberOfavailableSeats = seats ? seatsUnreserved.length : 99;
-  const seatsSelected = [];
-  const seatsSelectedToClear = seats.filter(seat => seat.selected === true);
 
-  // const handleClearAllSelectionSeats = async () => {
-  //   seatsSelectedToClear.map(seat => {
-  //     return dispatch({ type: CLEAR_SELECTION_SEATS, payload: seat.id })
-  //   } )
-  // };
-  // const handleClearSelection = async (seat) => {
-  //   try {
-  //     await API.patch(`/seats/${seat.id}`);
-  //     dispatch({ type: CLEAR_SELECTION_SEATS, payload: seat.id });
-  //     } catch (error){
-  //       console.log(error)
-  //     }
-  // };
+  const handleChange = () => setSeatsTogether(prevChecked => !prevChecked);
 
-  // if(seatsSelectedToClear.length) {
-  //   handleClearAllSelectionSeats();
-  // };
+  const handleClick = () => {
+    if (numberOfSeats > 0 && numberOfSeats <= 5 ) {
+      handleSeatsTogether();
+      history.push('/seats');
+    } else if (numberOfSeats > 5 && seatsTogether) {
+      setIsModalVisible(true);
+    } else if (numberOfSeats > 5 && !seatsTogether) {
+      handleSeparately();
+    }
+  };
   
-  const handleChangeCheckbox = () => setSeatsTogether(prevChecked => !prevChecked);
-
-  const handleChangeInput = (e) => {
-    setNumberOfSeats(Number(e.target.value));
-  };
-
-  const handleSumbit = async () => {
-    if (numberOfSeats) {
-      if (numberOfSeats > 0 && numberOfSeats <= 5) {
-        handleSeatsTogether();
-      } else if (numberOfSeats > 5) {
-        await handleSeatsSeparately();
-      } 
-    }
+  const handleSeparately = () => {
+    handleSeatsSeparately();
     history.push('/seats');
+    if (isModalVisible) setIsModalVisible(false);
   };
 
-  const handleSeatsTogether = async () => { 
-    for (let x = 0; x < 10; x++) {
-      let n = 0;
-      for (let y = 0; y < 15; y++) {
-        const id = `s${x}${y}`;
-        const seat = seatsUnreserved.find(seat => seat.id === id);
-        if (seat) {
-          n += 1;
-          if (n === numberOfSeats) {
-            try {
-              const response = await API.patch(`/seats/${seat.id}`, {...seat, selected: true});
-              dispatch({type: SELECT_SEAT, payload: id, ...response.data });
-            } catch (error) {
-              console.warn(error);
-            };
-          }
-        }
-
-      }
-    }
+  const handleCancelModal = () => {
+    setIsModalVisible(false);
   };
 
-  const handleSeatsSeparately = async () => { 
-    for (let x = 0; x < 10; x++) {
-      for (let y = 0; y < 15; y++) {
-        const id = `s${x}${y}`;
-        const seat = seatsUnreserved.find(seat => seat.id === id);
+  const handleSeatsTogether = () => { 
+    let n = 0;
+    for (let i = 0; i < numberOfavailableSeats; i++) {
+        const seat = seats[i];
         if (seat) {
-          try {
-            seatsSelected.push(seat)
-            const response = await API.patch(`/seats/${id}`, { ...seat, selected: true });
-            dispatch({type: SELECT_SEAT, payload: id, ...response.data });
-          } catch (error) {
-            console.warn(error);
-          };
-          if (seatsSelected.length === numberOfSeats) {
-            return;
+          if (seat.reserved) {
+            n = 0;
+          } else if (!seat.reserved) {
+            const thisSeatY = seat.cords.y;
+            const nextSeatY = seats[i+1].cords.y;
+            n += 1;
+            if (n < numberOfSeats && nextSeatY - thisSeatY !== 1) {
+              n = 0;
+            }
+            if (n === numberOfSeats) {
+              for (let j = 0; j < numberOfSeats; j++) {
+                const numberId = i - j;
+                const seatSeleted = seats[numberId]
+                try {
+                  dispatch({ type: SELECT_SEAT, payload: seatSeleted.id });
+                  } catch (error){
+                    console.log(error);
+                  }
+              }
+              return;
+            } 
           }
-        }
-      }
-    }
-    console.log("dziala")
+        } else n = 0;
+      };
+    };
+
+  const handleSeatsSeparately = () => { 
+    for (let i = 0; i < numberOfSeats; i++) {
+      const seat = seatsUnreserved[i];
+      if (seat) {
+        try {
+          dispatch({ type: SELECT_SEAT, payload: seat.id });
+          } catch (error){
+            console.log(error)
+          }
+      };
+    };
   };
 
   const validateMessages = {
@@ -106,40 +94,45 @@ const FormSeats = () => {
   };
 
   return (
-    <Form
-      className="form-wrapper"
-      // onFinishFailed={onFinishFailed}
-      validateMessages={validateMessages}
-      initialValues={{
-        seatsTogether: true,
-      }}
-    >
-      <Form.Item
-        onChange={e => handleChangeInput(e)}
-        label="Liczba miejsc"
-        name="numberOfSeats"
-        rules={[
-          {
-            required: true,
-            type: 'number',
-            min: 1,
-            max: 100,
-          },
-        ]}
+    <>
+      <Form
+        className="form-wrapper"
+        validateMessages={validateMessages}
+        initialValues={{
+          seatsTogether: true,
+        }}
       >
-        <InputNumber
-          autoFocus
-          min={1}
-          max={numberOfavailableSeats}
-          onChange={setNumberOfSeats}
-          value={numberOfSeats}
+        <Form.Item
+          onChange={e => setNumberOfSeats(Number(e.target.value))}
+          label="Liczba miejsc"
+          name="numberOfSeats"
+          rules={[
+            {
+              required: true,
+              type: 'number',
+              min: 1,
+              max: 100,
+            },
+          ]}
+        >
+          <InputNumber
+            autoFocus
+            min={1}
+            max={numberOfavailableSeats}
+            onChange={setNumberOfSeats}
+            value={numberOfSeats}
           />
-      </Form.Item>
-      <Form.Item name="seatsTogether">
-        <Checkbox checked={seatsTogether} onChange={handleChangeCheckbox}>Czy miejsca mają być obok siebie?</Checkbox>
-      </Form.Item>
-        <Button onClick={handleSumbit}>Wybierz miejsca</Button>
-    </Form>
+        </Form.Item>
+        <Form.Item name="seatsTogether">
+          <Checkbox checked={seatsTogether} onChange={handleChange}>Czy miejsca mają być obok siebie?</Checkbox>
+        </Form.Item>
+        <Button onClick={handleClick}>Wybierz miejsca</Button>
+      </Form>
+      <Modal title="Informacja" visible={isModalVisible} onOk={handleSeparately} onCancel={handleCancelModal}>
+        <p>Maksymalna liczba miejsc dostępnych przy sobie to 5.</p>
+        <p>Miejsca będą rozdzielone.</p>
+      </Modal>
+    </>
   );  
 };
  

@@ -12,7 +12,7 @@ const SeatList = () => {
   const seatsList = seats.map(seat => (
     <SeatItemList key={seat.id} {...seat} />
   ));
-  console.log(seatsList)
+
   return (
     <div className="seats-page-wrapper">
       <div className="seats-container">

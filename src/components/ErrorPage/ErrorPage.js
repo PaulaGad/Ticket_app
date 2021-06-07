@@ -8,12 +8,12 @@ const ErrorPage = () => {
 		history.push('/');
 	};
 
- return (
+  return (
 	 	<>
 			<h2>Szukana strona nie istnieje.</h2>
 			<Button onClick={handleOnClick}>Powrót do strony głównej</Button>
 		</>
- );
+  );
 };
  
 export default ErrorPage;

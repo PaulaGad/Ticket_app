@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useReducer } from 'react';
+
 import API from '../api/index';
 import { FETCH_ALL_SEATS } from './actionTypes';
 import seatsReducer from './reducers';
@@ -6,7 +7,6 @@ import seatsReducer from './reducers';
 export const StoreContext = createContext(null);
 
 const StoreProvider = ({ children }) => {
-  // const history = useHistory();
   const [seats, dispatch] = useReducer(seatsReducer, []);
   
   const fetchData = async () => { 
