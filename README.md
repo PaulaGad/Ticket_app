@@ -1,10 +1,15 @@
+This project was bootstrapped with Create React App, using the Hooks.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
-In the project directory, you can run:
+### `npm run api`
+Runs the app server. The server uses port 3001 (http://localhost:3001)
+
+Then in the project directory in a separate terminal you can run:
 
 ### `npm start`
 
