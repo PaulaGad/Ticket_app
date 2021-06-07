@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+
 import ErrorPage from './components/ErrorPage/ErrorPage';
 import FormSeats from './components/FormSeats/FormSeats';
 import SeatList from './components/Seats/SeatList/SeatList';
@@ -11,14 +12,14 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <header className="App-header">
+        <main className="App-main">
           <Switch>
             <Route path="/" exact render={() => <FormSeats/>}/>
             <Route path="/seats" exact render={() => <SeatList />}/>
             <Route path="/summary" exact render={() => <Summary />}/>
             <Route component={ErrorPage} />
           </Switch>
-        </header>
+        </main>
       </div>
     </Router>
   );
